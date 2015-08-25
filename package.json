@@ -1,0 +1,25 @@
+{
+  "name": "quickflow",
+  "version": "1.0.0",
+  "description": "disgustingly simple flow based programming",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pbrandt1/quickflow.git"
+  },
+  "author": "Peter Brandt <peter.m.brandt@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pbrandt1/quickflow/issues"
+  },
+  "homepage": "https://github.com/pbrandt1/quickflow#readme",
+  "dependencies": {
+    "body-parser": "^1.13.3",
+    "express": "^4.13.3",
+    "uuid": "^2.0.1",
+    "vvv": "^1.1.0"
+  }
+}
