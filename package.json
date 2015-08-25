@@ -18,6 +18,7 @@
   "homepage": "https://github.com/pbrandt1/quickflow#readme",
   "dependencies": {
     "body-parser": "^1.13.3",
+    "colors": "^1.1.2",
     "express": "^4.13.3",
     "uuid": "^2.0.1",
     "vvv": "^1.1.0"

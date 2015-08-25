@@ -1,4 +1,5 @@
 require('vvv');
+require('colors');
 
 var graph = {};
 var startupFunctions = [];
@@ -26,16 +27,23 @@ function QuickFlowRegister(fn_source, fn_sink) {
         }
     }
 
-    if (!fn_source && fn_sink) {
-        // if you call something with a null source, then the sink function is ran as a start-up function
-        startupFunctions.push(fn_sink.name);
-    } else if (fn_source) {
-        if (fn_sink) {
-            graph[fn_source.name].children.push(fn_sink.name);
-        }
+    if (fn_source && fn_sink) {
+        graph[fn_source.name].children.push(fn_sink.name);
     }
 }
 
+/**
+ * Tells quickflow to run a function at start
+ * @param fn
+ */
+function registerStartingPoint(fn) {
+    startupFunctions.push(fn.name);
+}
+
+/**
+ * Runs quickflow
+ * @constructor
+ */
 function Run() {
     log.v('Graph of registered functions:');
     log.v(graph);
@@ -55,13 +63,14 @@ function runFunctionByName(name, data) {
                 })
             })
         } catch (e) {
-            console.error(e.message);
-            console.error(e.stack);
+            console.error(('error running function \'' + name + '\' with data \'' + JSON.stringify(data) + '\'').red);
+            console.error(e.stack.red);
         }
     });
 }
 
 module.exports = {
     register: QuickFlowRegister,
+    registerStartingPoint: registerStartingPoint,
     run: Run
 };

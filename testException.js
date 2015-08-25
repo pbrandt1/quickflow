@@ -7,7 +7,7 @@ function startingPoint(data, done) {
 }
 
 function upperCase(data, done) {
-    done(data.str.toUpperCase());
+    done(data.strasdfasdf.toUpperCase());
 }
 
 function log(data, done) {
