@@ -4,6 +4,12 @@ require('colors');
 var graph = {};
 var startupFunctions = [];
 
+function getBody(f) {
+    return f.toString()
+        .split('{').splice(1).join('{')
+        .split('}').slice(0, -1).join('}')
+        .trim();
+}
 
 /**
  * Registers a source/sink pair so that functions know what to do with their output
@@ -16,6 +22,8 @@ function QuickFlowRegister(fn_source, fn_sink) {
     if (fn_source && !graph[fn_source.name]) {
         graph[fn_source.name] = {
             fn: fn_source,
+            name: fn_source.name,
+            body: getBody(fn_source),
             children: []
         }
     }
@@ -23,6 +31,8 @@ function QuickFlowRegister(fn_source, fn_sink) {
     if (fn_sink && !graph[fn_sink.name]) {
         graph[fn_sink.name] = {
             fn: fn_sink,
+            name: fn_sink.name,
+            body: getBody(fn_sink),
             children: []
         }
     }
@@ -37,7 +47,16 @@ function QuickFlowRegister(fn_source, fn_sink) {
  * @param fn
  */
 function registerStartingPoint(fn) {
+    if (fn && !graph[fn.name]) {
+        graph[fn.name] = {
+            fn: fn,
+            name: fn.name,
+            body: getBody(fn),
+            children: []
+        }
+    }
     startupFunctions.push(fn.name);
+    graph[fn.name].startingPoint = true;
 }
 
 /**
@@ -72,5 +91,6 @@ function runFunctionByName(name, data) {
 module.exports = {
     register: QuickFlowRegister,
     registerStartingPoint: registerStartingPoint,
-    run: Run
+    run: Run,
+    graph: graph
 };

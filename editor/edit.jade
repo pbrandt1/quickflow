@@ -1,0 +1,37 @@
+html(lang="en")
+    head
+        meta(charset="utf-8")
+        title #{data.filename}
+        meta(name="viewport" content="width=device-width, initial-scale=1")
+        link(href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css")
+        link(href="/normalize.css" rel="stylesheet" type="text/css")
+        link(href="/skeleton.css" rel="stylesheet" type="text/css")
+        link(href="/quickflow.css" rel="stylesheet" type="text/css")
+
+    body
+        .no-contain
+            .row
+                .five.columns
+                    h4 #{data.filename}
+                    .graph
+                .seven.columns
+                    h4.fn-name function <strong>name</strong>(data, done)
+                    .editor
+                        div#ace.
+                            function() {
+                                code
+                            }
+        .container
+            hr
+            .row
+                .twelve.columns.u-textAlignCenter.
+                    quickflow 2015
+
+        script(src="/konami.js")
+        script(src="/zepto.min.js")
+        script(src="/d3.min.js")
+        script(src="//cdn.jsdelivr.net/ace/1.2.0/min/ace.js")
+        script.
+            var quickflowData = !{JSON.stringify(data)}
+            console.log(quickflowData);
+        script(src="/quickflow_app.js")

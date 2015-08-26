@@ -18,4 +18,8 @@ function log(data, done) {
 quickflow.registerStartingPoint(startingPoint);
 quickflow.register(startingPoint, upperCase);
 quickflow.register(upperCase, log);
-quickflow.run();
+if (!module.parent) {
+    quickflow.run();
+} else {
+    module.exports = quickflow.graph;
+}
