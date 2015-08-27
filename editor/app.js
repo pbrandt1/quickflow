@@ -73,15 +73,22 @@ app.post('/_save', function(req, res, next) {
         lines.push('}');
         lines.push('');
     });
+
+    var allChildren = Object.keys(graph).reduce(function(children, k) {
+        return children.concat(graph[k].children);
+    }, [])
+
     Object.keys(graph).map(function(k) {
-        if (graph[k].startingPoint) {
-            lines.push('quickflow.registerStartingPoint(' + graph[k].name + ')');
-        }
         graph[k].children.map(function(c) {
-            lines.push('quickflow.register(' + graph[k].name + ', ' + graph[c].name + ')');
+            lines.push('quickflow.connect(' + graph[k].name + ', ' + graph[c].name + ')');
         })
+
+        // also connect island nodes to nothing
+        if (graph[k].children.length === 0 && allChildren.indexOf(k) < 0) {
+            lines.push('quickflow.connect(' + graph[k].name + ')');
+        }
     })
-    lines.push('if (!module.parent) quickflow.run();')
+    lines.push('if (!module.parent) quickflow.run()')
     log.vv(lines);
     fs.writeFile(files[req.body.filename], lines.join('\n'))
     res.sendStatus(200);

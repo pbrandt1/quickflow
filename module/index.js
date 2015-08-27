@@ -22,7 +22,7 @@ function getBody(f) {
  * @param fn_sink
  * @constructor
  */
-Quickflow.prototype.register = function(fn_source, fn_sink) {
+Quickflow.prototype.connect = function(fn_source, fn_sink) {
     var graph = this.graph;
     // make sure they are in the graph object
     if (fn_source && !graph[fn_source.name]) {
@@ -49,33 +49,28 @@ Quickflow.prototype.register = function(fn_source, fn_sink) {
 }
 
 /**
- * Tells quickflow to run a function at start
- * @param fn
- */
-Quickflow.prototype.registerStartingPoint = function(fn) {
-    if (fn && !this.graph[fn.name]) {
-        this.graph[fn.name] = {
-            fn: fn,
-            name: fn.name,
-            body: getBody(fn),
-            children: []
-        }
-    }
-    this.startupFunctions.push(fn.name);
-    this.graph[fn.name].startingPoint = true;
-}
-
-/**
  * Runs quickflow
  * @constructor
  */
-Quickflow.prototype.run = function () {
+Quickflow.prototype.run = function (data) {
     var runFunctionByName = this.runFunctionByName.bind(this);
+    var graph = this.graph;
     log.v('Graph of registered functions:');
-    log.v(this.graph);
+    log.v(graph);
     log.v('');
-    this.startupFunctions.map(function(f) {
-        runFunctionByName(f);
+
+    // find all the root nodes
+    var rootNodes = Object.keys(graph).reduce(function(startupNodes, k) {
+        graph[k].children.map(function(c) {
+            if (startupNodes.indexOf(c) >= 0) {
+                startupNodes.splice(startupNodes.indexOf(c), 1);
+            }
+        });
+        return startupNodes;
+    }, Object.keys(graph))
+    log.v('root nodes:', rootNodes);
+    rootNodes.map(function(f) {
+        runFunctionByName(f, data);
     })
 }
 

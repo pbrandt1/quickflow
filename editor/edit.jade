@@ -13,7 +13,7 @@ html(lang="en")
             .row
                 .five.columns
                     h4 #{data.filename}
-                    .graph
+                    .graph(tabindex="-1")
                 .seven.columns
                     h4.fn-name function <strong>name</strong>(data, done)
                         a(onclick="edit_name()") edit
@@ -26,7 +26,7 @@ html(lang="en")
             hr
             .row
                 .twelve.columns.u-textAlignCenter.
-                    quickflow 2015
+                    quickflow 1.0.0
 
         script(src="/konami.js")
         script(src="/zepto.min.js")

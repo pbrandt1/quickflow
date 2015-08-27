@@ -207,15 +207,9 @@ function restart() {
             // add link to graph (update if exists)
             // NB: links are strictly source < target; arrows separately specified by booleans
             var source, target, direction;
-            if(mousedown_node.id < mouseup_node.id) {
                 source = mousedown_node;
                 target = mouseup_node;
                 direction = 'right';
-            } else {
-                source = mouseup_node;
-                target = mousedown_node;
-                direction = 'left';
-            }
 
             var link;
             link = links.filter(function(l) {
@@ -225,8 +219,7 @@ function restart() {
             if(link) {
                 link[direction] = true;
             } else {
-                link = {source: source, target: target, left: false, right: false};
-                link[direction] = true;
+                link = {source: source, target: target, left: false, right: true};
                 links.push(link);
                 source.children.push(target.name);
                 shouldSave = true;
@@ -243,6 +236,7 @@ function restart() {
         .attr('x', 0)
         .attr('y', 4)
         .attr('class', 'id')
+        .attr('id', function(d) { return 'node_' + d.id; })
         .text(function(d) { return d.name; });
 
     // remove old nodes
@@ -255,7 +249,7 @@ function restart() {
 
 function mousedown() {
     // prevent I-bar on drag
-    //d3.event.preventDefault();
+    d3.event.preventDefault();
 
     // because :active only works in WebKit?
     svg.classed('active', true);
@@ -306,19 +300,39 @@ function mouseup() {
 }
 
 function spliceLinksForNode(node) {
-    var toSplice = links.filter(function(l) {
+}
+
+function deleteNode(node) {
+    // delete ui links
+    links.filter(function(l) {
         return (l.source === node || l.target === node);
-    });
-    toSplice.map(function(l) {
+    }).map(function(l) {
         links.splice(links.indexOf(l), 1);
     });
+
+    // delete ui node
+    nodes.splice(nodes.indexOf(node), 1);
+    delete quickflowData.graph[node.name];
+
+    // delete children
+    nodes.map(function(n) {
+        if (n.children.indexOf(node.name) >= 0) {
+            n.children.splice(n.children.indexOf(node.name), 1);
+        }
+    })
+}
+
+function deleteLink(link) {
+    links.splice(links.indexOf(link), 1);
+    link.source.children.splice(link.source.children.indexOf(link.target.name), 1);
 }
 
 // only respond once per keydown
 var lastKeyDown = -1;
 
 function keydown() {
-    d3.event.preventDefault();
+    if (event.target !== document.body) { return true }
+    //d3.event.preventDefault();
 
     if(lastKeyDown !== -1) return;
     lastKeyDown = d3.event.keyCode;
@@ -333,11 +347,11 @@ function keydown() {
     switch(d3.event.keyCode) {
         case 8: // backspace
         case 46: // delete
+            console.log('delete');
             if(selected_node) {
-                nodes.splice(nodes.indexOf(selected_node), 1);
-                spliceLinksForNode(selected_node);
+                deleteNode(selected_node);
             } else if(selected_link) {
-                links.splice(links.indexOf(selected_link), 1);
+                deleteLink(selected_link);
             }
             selected_link = null;
             selected_node = null;
@@ -371,6 +385,7 @@ function keydown() {
             //restart();
             break;
     }
+    shouldSave = true;
 }
 
 function keyup() {
@@ -389,7 +404,7 @@ function keyup() {
 svg.on('mousedown', mousedown)
     .on('mousemove', mousemove)
     .on('mouseup', mouseup);
-d3.select('.graph')
+d3.select('body')
     .on('keydown', keydown)
     .on('keyup', keyup);
 restart();
@@ -427,7 +442,7 @@ setInterval(function() {
 var current_function;
 function edit(node) {
     current_function = node;
-    $('.fn-name').html('function <strong>' + node.name + '</strong>(data, done) <a href="#" onclick="return editName()">edit</a>');
+    $('.fn-name').html('function <strong>' + node.name + '</strong>(data, done) <a class="edit" href="#" onclick="return editName()">edit</a>');
     editor.setValue(node.body);
     editor.gotoLine(0);
 }
@@ -445,13 +460,19 @@ $(document).on('keydown', '.fn-name input', function(e) {
 })
 
 function editNameDone() {
-    var val = $('.fn-name input').val();
-    if (val === '' || (quickflowData.graph[val] && quickflowData.graph[val] !== current_function)) { return false }
-    delete quickflowData.graph[current_function.name];
-    nodes.splice(nodes.indexOf(current_function), 1);
-    current_function.name = val;
-    nodes.push(current_function);
-    quickflowData.graph[val] = current_function;
+    var newName = $('.fn-name input').val();
+    var oldName = current_function.name;
+    if (newName === '' || (quickflowData.graph[newName] && quickflowData.graph[newName] !== current_function)) { return false }
+
+    delete quickflowData.graph[oldName];
+    current_function.name = newName;
+    quickflowData.graph[newName] = current_function;
+    nodes.map(function(n) {
+        if (n.children.indexOf(oldName) >= 0) {
+            n.children.splice(n.children.indexOf(oldName), 1);
+            n.children.push(newName);
+        }
+    })
     restart();
     shouldSave = true;
     edit(current_function);

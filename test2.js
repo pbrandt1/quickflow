@@ -5,7 +5,7 @@ function startingPoint(data, done) {
 // we are editing the "startingPoint" function.
 // calling the done() callback passes the specified data
 // along the lines of the graph
-done('quickflow is easy')
+done(data)
 }
 
 function upperCase(data, done) {

@@ -66,3 +66,11 @@ text.id {
     padding-left: 2%;
     padding-right: 2%;
 }
+
+.fn-name:hover a.edit {
+    display: inline-block;
+}
+
+.fn-name a.edit {
+    display: none;
+}
