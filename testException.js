@@ -1,4 +1,4 @@
-var quickflow = require('./index');
+var quickflow = require('quickflow')();
 
 function startingPoint(data, done) {
     done({

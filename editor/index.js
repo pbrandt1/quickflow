@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var filename = process.argv[2];
 var path = require('path');
 var fileFullURL = path.resolve(process.cwd(), filename);
