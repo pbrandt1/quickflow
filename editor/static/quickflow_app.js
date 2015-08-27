@@ -151,6 +151,7 @@ function restart() {
 
     // update existing nodes (reflexive & selected visual states)
     circle.selectAll('text')
+        .text(function(d) { return d.name; })
         .style('fill', function(d) { return (d === selected_node) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id); })
         .classed('reflexive', function(d) { return d.reflexive; });
 
@@ -227,6 +228,8 @@ function restart() {
                 link = {source: source, target: target, left: false, right: false};
                 link[direction] = true;
                 links.push(link);
+                source.children.push(target.name);
+                shouldSave = true;
             }
 
             // select new link
@@ -261,11 +264,20 @@ function mousedown() {
 
     // insert new node at point
     var point = d3.mouse(this),
-        node = {id: ++currentColorId, reflexive: false, name: 'f_' + (Math.random()*1000000|0).toString(32)};
+        node = {
+            id: currentColorId ++,
+            reflexive: false,
+            name: 'function_' + (Math.random()*1000000|0).toString(32),
+            body: '',
+            children: []
+        };
     node.x = point[0];
     node.y = point[1];
     nodes.push(node);
+    quickflowData.graph[node.name] = node;
+    shouldSave = true;
 
+    restart();
     restart();
 }
 
@@ -381,6 +393,7 @@ d3.select('.graph')
     .on('keydown', keydown)
     .on('keyup', keyup);
 restart();
+restart(); // have to do this twice for some reason (don't know and don't care)
 $( window ).resize(function() {
     restart();
 })
@@ -388,6 +401,8 @@ $( window ).resize(function() {
 var editor = ace.edit('ace');
 editor.setTheme('ace/theme/monokai');
 editor.getSession().setMode("ace/mode/javascript");
+editor.getSession().setUseSoftTabs(true);
+editor.getSession().setTabSize(2);
 
 // Mark shouldSave as true every time the text changes
 var shouldSave = false;
@@ -412,9 +427,40 @@ setInterval(function() {
 var current_function;
 function edit(node) {
     current_function = node;
-    $('.fn-name').html('function <strong>' + node.name + '</strong>(data, done)');
+    $('.fn-name').html('function <strong>' + node.name + '</strong>(data, done) <a href="#" onclick="return editName()">edit</a>');
     editor.setValue(node.body);
     editor.gotoLine(0);
+}
+
+function editName() {
+    $('.fn-name').html('function <input type="text" value=' + current_function.name + '>(data, done) <a href="#" onclick="return editNameDone()">done</a> <a href="#" onclick="return editNameCancel()">cancel</a>')
+    return false;
+}
+
+$(document).on('keydown', '.fn-name input', function(e) {
+    // ignore invalid function characters
+    if ([32].indexOf(e.which) >= 0) {
+        return false;
+    }
+})
+
+function editNameDone() {
+    var val = $('.fn-name input').val();
+    if (val === '' || (quickflowData.graph[val] && quickflowData.graph[val] !== current_function)) { return false }
+    delete quickflowData.graph[current_function.name];
+    nodes.splice(nodes.indexOf(current_function), 1);
+    current_function.name = val;
+    nodes.push(current_function);
+    quickflowData.graph[val] = current_function;
+    restart();
+    shouldSave = true;
+    edit(current_function);
+    return false;
+}
+
+function editNameCancel() {
+    edit(current_function);
+    return false;
 }
 
 if (Object.keys(quickflowData.graph).length > 0)

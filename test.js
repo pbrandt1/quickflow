@@ -1,25 +1,29 @@
-var quickflow = require('./index');
+var quickflow = module.exports = require('quickflow')()
 
 function startingPoint(data, done) {
-    done({
-        str: 'hello people'
-    })
+// here's a sample to get you started:
+// we are editing the "startingPoint" function
+// calling the done() callback passes the specified data
+// along the lines of the graph
+done({
+  str: 'quickflow is disgusting!'
+})
 }
 
 function upperCase(data, done) {
-    done(data.str.toUpperCase());
+// you can transform the data you get into anything
+// there are no rules
+done(data.str.toUpperCase());
 }
 
 function log(data, done) {
-    console.log(data);
-    done();
+// you don't even have to call done() if you don't want to
+// all logging is up to you, so you don't have to rely on
+// a complicated framework convention to make things work.
+console.log(data)
 }
 
-quickflow.registerStartingPoint(startingPoint);
-quickflow.register(startingPoint, upperCase);
-quickflow.register(upperCase, log);
-if (!module.parent) {
-    quickflow.run();
-} else {
-    module.exports = quickflow.graph;
-}
+quickflow.registerStartingPoint(startingPoint)
+quickflow.register(startingPoint, upperCase)
+quickflow.register(upperCase, log)
+if (!module.parent) quickflow.run();

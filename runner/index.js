@@ -1,8 +1,13 @@
 require('vvv');
 require('colors');
 
-var graph = {};
-var startupFunctions = [];
+var Quickflow = function() {
+    if (!(this instanceof Quickflow)) {
+        return new Quickflow();
+    }
+    this.graph = {};
+    this.startupFunctions = [];
+};
 
 function getBody(f) {
     return f.toString()
@@ -17,7 +22,8 @@ function getBody(f) {
  * @param fn_sink
  * @constructor
  */
-function QuickFlowRegister(fn_source, fn_sink) {
+Quickflow.prototype.register = function(fn_source, fn_sink) {
+    var graph = this.graph;
     // make sure they are in the graph object
     if (fn_source && !graph[fn_source.name]) {
         graph[fn_source.name] = {
@@ -46,33 +52,36 @@ function QuickFlowRegister(fn_source, fn_sink) {
  * Tells quickflow to run a function at start
  * @param fn
  */
-function registerStartingPoint(fn) {
-    if (fn && !graph[fn.name]) {
-        graph[fn.name] = {
+Quickflow.prototype.registerStartingPoint = function(fn) {
+    if (fn && !this.graph[fn.name]) {
+        this.graph[fn.name] = {
             fn: fn,
             name: fn.name,
             body: getBody(fn),
             children: []
         }
     }
-    startupFunctions.push(fn.name);
-    graph[fn.name].startingPoint = true;
+    this.startupFunctions.push(fn.name);
+    this.graph[fn.name].startingPoint = true;
 }
 
 /**
  * Runs quickflow
  * @constructor
  */
-function Run() {
+Quickflow.prototype.run = function () {
+    var runFunctionByName = this.runFunctionByName.bind(this);
     log.v('Graph of registered functions:');
-    log.v(graph);
+    log.v(this.graph);
     log.v('');
-    startupFunctions.map(function(f) {
+    this.startupFunctions.map(function(f) {
         runFunctionByName(f);
     })
 }
 
-function runFunctionByName(name, data) {
+Quickflow.prototype.runFunctionByName = function(name, data) {
+    var graph = this.graph;
+    var runFunctionByName = this.runFunctionByName.bind(this);
     log.v('running', name, 'with', data);
     process.nextTick(function() {
         try {
@@ -88,9 +97,4 @@ function runFunctionByName(name, data) {
     });
 }
 
-module.exports = {
-    register: QuickFlowRegister,
-    registerStartingPoint: registerStartingPoint,
-    run: Run,
-    graph: graph
-};
+module.exports = Quickflow;
